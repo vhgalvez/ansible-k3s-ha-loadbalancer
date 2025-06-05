@@ -1,0 +1,50 @@
+# ansible/playbooks/uninstall_haproxy_keepalived.yml
+---
+- name: Desinstalar HAProxy + Keepalived y limpiar configuración
+  hosts: haproxy_keepalived
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Detener y deshabilitar HAProxy
+      systemd:
+        name: haproxy
+        state: stopped
+        enabled: false
+      ignore_errors: true
+
+    - name: Detener y deshabilitar Keepalived
+      systemd:
+        name: keepalived
+        state: stopped
+        enabled: false
+      ignore_errors: true
+
+    - name: Eliminar configuración de HAProxy
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ haproxy_config_dir }}"
+        - "{{ haproxy_socket_file }}"
+        - /etc/systemd/system/haproxy.service.d
+
+    - name: Eliminar configuración de Keepalived
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ keepalived_config_dir }}"
+        - /etc/systemd/system/keepalived.service.d
+
+    - name: Eliminar binarios en sistemas RHEL-like
+      package:
+        name:
+          - haproxy
+          - keepalived
+        state: absent
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: Recargar systemd tras eliminar servicios
+      command: systemctl daemon-reexec
+      become: true

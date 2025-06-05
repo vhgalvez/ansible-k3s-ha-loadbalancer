@@ -1,0 +1,69 @@
+# templates/keepalived/keepalived.conf.j2
+# ==========================================
+# Keepalived Configuration Template
+# Two VIPs: API (6443) and Ingress (80/443)
+# Interface: eth1 (dedicada para tráfico VIP)
+# ==========================================
+
+global_defs {
+    router_id {{ inventory_hostname }}
+}
+
+vrrp_script chk_haproxy {
+    script "/bin/bash -c 'systemctl is-active haproxy >/dev/null 2>&1'"
+    interval 2
+    timeout 5
+    fall 2
+    rise 2
+    weight -10
+}
+
+vrrp_instance VI_API {
+    state BACKUP
+    interface eth1
+    virtual_router_id 51
+    priority {{ keepalived_priority_api | default(100) }}
+    advert_int 1
+
+    authentication {
+        auth_type {{ keepalived_auth_type }}
+        auth_pass {{ keepalived_auth_pass }}
+    }
+
+    virtual_ipaddress {
+        {{ api_vip }}/32 dev eth1
+    }
+
+    track_script {
+        chk_haproxy
+    }
+
+    track_interface {
+        eth1
+    }
+}
+
+vrrp_instance VI_INGRESS {
+    state BACKUP
+    interface eth1
+    virtual_router_id 52
+    priority {{ keepalived_priority_ingress | default(100) }}
+    advert_int 1
+
+    authentication {
+        auth_type {{ keepalived_auth_type }}
+        auth_pass {{ keepalived_auth_pass }}
+    }
+
+    virtual_ipaddress {
+        {{ second_vip }}/32 dev eth1
+    }
+
+    track_script {
+        chk_haproxy
+    }
+
+    track_interface {
+        eth1
+    }
+}

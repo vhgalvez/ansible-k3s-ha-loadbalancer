@@ -1,0 +1,2 @@
+keepalived_priority_api: 100
+keepalived_priority_ingress: 100

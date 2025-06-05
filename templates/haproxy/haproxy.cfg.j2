@@ -1,0 +1,104 @@
+# templates/haproxy/haproxy.cfg.j2
+# ================================
+# Configuración Global de HAProxy
+# ================================
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    daemon
+    maxconn 4096
+    user haproxy
+    group haproxy
+    stats socket {{ haproxy_socket_file }} mode 660 level admin expose-fd listeners
+    pidfile /run/haproxy.pid
+
+# =========================
+# Configuración por defecto
+# =========================
+defaults
+    log     global
+    mode    tcp
+    option  tcplog
+    option  dontlognull
+    timeout connect 5s
+    timeout client  60s
+    timeout server  60s
+    retries 3
+    option  http-server-close
+    option  forwardfor
+    errorfile 400 /etc/haproxy/errors/400.http
+    errorfile 403 /etc/haproxy/errors/403.http
+    errorfile 408 /etc/haproxy/errors/408.http
+    errorfile 500 /etc/haproxy/errors/500.http
+    errorfile 502 /etc/haproxy/errors/502.http
+    errorfile 503 /etc/haproxy/errors/503.http
+    errorfile 504 /etc/haproxy/errors/504.http
+
+# ============================================
+# VIP {{ api_vip }} - API SERVER Kubernetes (6443)
+# ============================================
+frontend k8s_api
+    bind {{ api_vip }}:6443 transparent
+    mode tcp
+    option tcplog
+    default_backend k8s_api_backend
+
+backend k8s_api_backend
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    default-server inter 3s fall 3 rise 2
+{% for host in groups['masters'] %}
+    server {{ host }} {{ host }}:6443 check
+{% endfor %}
+
+# ==========================================
+# VIP {{ second_vip }} - INGRESS CONTROLLER HTTP
+# ==========================================
+frontend ingress_http
+    bind {{ second_vip }}:80 transparent
+    mode tcp
+    option tcplog
+    default_backend ingress_http_backend
+
+backend ingress_http_backend
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    default-server inter 3s fall 3 rise 2
+{% for host in groups['workers'] %}
+    server {{ host }} {{ host }}:80 check
+{% endfor %}
+
+# ===========================================
+# VIP {{ second_vip }} - INGRESS CONTROLLER HTTPS
+# ===========================================
+frontend ingress_https
+    bind {{ second_vip }}:443 transparent
+    mode tcp
+    option tcplog
+    default_backend ingress_https_backend
+
+backend ingress_https_backend
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    default-server inter 3s fall 3 rise 2
+{% for host in groups['workers'] %}
+    server {{ host }} {{ host }}:443 check
+{% endfor %}
+
+# ================================
+# Interfaz de estadísticas HAProxy
+# ================================
+{% if haproxy_stats_enabled %}
+listen stats
+    bind {{ haproxy_stats_bind_address }}:{{ haproxy_stats_port }}
+    mode http
+    stats enable
+    stats uri {{ haproxy_stats_uri }}
+    stats refresh {{ haproxy_stats_refresh }}
+    stats show-node
+    stats auth {{ haproxy_stats_auth_user }}:{{ haproxy_stats_auth_pass }}
+{% endif %}
+

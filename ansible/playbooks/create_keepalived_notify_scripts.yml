@@ -1,0 +1,55 @@
+# ansible\playbooks\create_keepalived_notify_scripts.yml
+---
+- name: Crear scripts de notificación para Keepalived (MASTER / BACKUP / FAULT)
+  hosts: haproxy_keepalived
+  become: true
+  gather_facts: no
+
+  tasks:
+
+    - name: 📁 Crear carpeta para scripts de Keepalived
+      file:
+        path: /etc/keepalived/scripts
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: 📜 Crear script vip_master.sh
+      copy:
+        dest: /etc/keepalived/scripts/vip_master.sh
+        content: |
+          #!/bin/bash
+          echo "$(date) - $(hostname) asumió MASTER para $1" >> /var/log/keepalived_vip.log
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: 📜 Crear script vip_backup.sh
+      copy:
+        dest: /etc/keepalived/scripts/vip_backup.sh
+        content: |
+          #!/bin/bash
+          echo "$(date) - $(hostname) cambió a BACKUP para $1" >> /var/log/keepalived_vip.log
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: 📜 Crear script vip_fault.sh
+      copy:
+        dest: /etc/keepalived/scripts/vip_fault.sh
+        content: |
+          #!/bin/bash
+          echo "$(date) - $(hostname) entró en estado FAULT para $1" >> /var/log/keepalived_vip.log
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: ✅ Verificar existencia de scripts creados
+      shell: ls -l /etc/keepalived/scripts/
+      register: script_check
+      changed_when: false
+
+    - name: 📋 Mostrar scripts generados
+      debug:
+        var: script_check.stdout_lines

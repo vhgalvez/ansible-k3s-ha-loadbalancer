@@ -1,0 +1,5 @@
+[Service]
+RuntimeDirectory=haproxy
+ExecStartPre=/usr/sbin/haproxy -f /etc/haproxy/haproxy.cfg -c -q
+ExecReload=/usr/sbin/haproxy -f /etc/haproxy/haproxy.cfg -c -q
+ExecReload=/bin/kill -USR2 $MAINPID

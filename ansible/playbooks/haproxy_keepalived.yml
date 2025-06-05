@@ -1,0 +1,157 @@
+# ansible\playbooks\haproxy_keepalived.yml
+---
+- name: Instalar y Configurar HAProxy + Keepalived para Kubernetes API e Ingress
+  hosts: haproxy_keepalived
+  become: true
+  gather_facts: true
+
+  vars_files:
+  - ../../group_vars/haproxy_keepalived.yml
+
+  tasks:
+    - name: Detectar si es Flatcar Container Linux
+      shell: grep -q 'Flatcar' /etc/os-release && echo true || echo false
+      register: is_flatcar
+      changed_when: false
+
+    - name: Instalar paquetes necesarios en sistemas RHEL-like
+      package:
+        name:
+          - net-tools
+          - haproxy
+          - keepalived
+          - python3-dnf
+          - libselinux-python3
+          - policycoreutils-python-utils
+        state: present
+      when: is_flatcar.stdout != 'true'
+
+    - name: Habilitar puertos SELinux para HAProxy
+      command: semanage port -a -t http_port_t -p tcp {{ item }}
+      loop:
+        - 6443
+        - 80
+        - 443
+      ignore_errors: true
+      when: is_flatcar.stdout != 'true'
+
+    - name: Crear usuario y grupo haproxy si no existen
+      user:
+        name: haproxy
+        group: haproxy
+        shell: /sbin/nologin
+        system: yes
+        create_home: no
+        state: present
+
+    - name: Crear directorios necesarios
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      loop:
+        - "{{ haproxy_config_dir }}"
+        - "{{ keepalived_config_dir }}"
+        - "{{ haproxy_socket_dir }}"
+        - "/etc/haproxy/errors"
+
+    - name: Crear páginas de error estándar de HAProxy
+      copy:
+        dest: "/etc/haproxy/errors/{{ item.code }}.http"
+        content: |
+          HTTP/1.0 {{ item.code }} {{ item.message }}
+          Content-Type: text/html
+
+          <html><body><h1>{{ item.code }} {{ item.message }}</h1>
+          <p>Lo sentimos, ocurrió un error {{ item.code }}.</p></body></html>
+        owner: root
+        group: root
+        mode: "0644"
+      loop:
+        - { code: "400", message: "Bad Request" }
+        - { code: "403", message: "Forbidden" }
+        - { code: "408", message: "Request Timeout" }
+        - { code: "500", message: "Internal Server Error" }
+        - { code: "502", message: "Bad Gateway" }
+        - { code: "503", message: "Service Unavailable" }
+        - { code: "504", message: "Gateway Timeout" }
+
+    - name: 📁 Crear carpeta override para HAProxy en systemd
+      file:
+        path: /etc/systemd/system/haproxy.service.d
+        state: directory
+        mode: "0755"
+
+    - name: 🛠️ Plantilla de override systemd para HAProxy
+      template:
+        src: "../../templates/haproxy/haproxy-override.conf.j2"
+        dest: /etc/systemd/system/haproxy.service.d/override.conf
+        mode: "0644"
+      notify:
+        - 🔄 Reload systemd
+        - 🔁 Restart HAProxy
+
+    - name: 📁 Crear carpeta override para Keepalived en systemd
+      file:
+        path: /etc/systemd/system/keepalived.service.d
+        state: directory
+        mode: "0755"
+
+    - name: Crear override systemd para Keepalived
+      copy:
+        dest: /etc/systemd/system/keepalived.service.d/override.conf
+        content: |
+          [Unit]
+          After=haproxy.service
+      notify: 🔄 Reload systemd
+
+    - name: Verificar variable keepalived_interface
+      debug:
+        var: keepalived_interface
+
+    - name: Plantilla de configuración Keepalived
+      template:
+        src: "{{ keepalived_config_template }}"
+        dest: "{{ keepalived_config_dir }}/keepalived.conf"
+        mode: "0644"
+      notify: 🔁 Restart Keepalived
+
+    - name: Plantilla de configuración HAProxy
+      template:
+        src: "{{ haproxy_config_template }}"
+        dest: "{{ haproxy_config_dir }}/haproxy.cfg"
+        mode: "0644"
+      notify: 🔍 Validar configuración HAProxy
+
+    - name: Borrar socket antiguo si existe
+      file:
+        path: "{{ haproxy_socket_file }}"
+        state: absent
+
+  handlers:
+    - name: 🔄 Reload systemd
+      command: systemctl daemon-reload
+      become: true
+
+    - name: 🔍 Validar configuración HAProxy
+      command: "haproxy -c -f {{ haproxy_config_dir }}/haproxy.cfg"
+      register: haproxy_config_check_result
+      changed_when: false
+      notify: 🔁 Restart HAProxy
+      ignore_errors: true
+
+    - name: 🔁 Restart HAProxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: true
+      become: true
+
+    - name: 🔁 Restart Keepalived
+      systemd:
+        name: keepalived
+        state: restarted
+        enabled: true
+      become: true
