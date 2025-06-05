@@ -1,8 +1,9 @@
 # templates/keepalived/keepalived.conf.j2
 # ==========================================
 # Keepalived Configuration Template
-# Two VIPs: API (6443) and Ingress (80/443)
-# Interface: eth1 (dedicada para tráfico VIP)
+# Dos VIPs: API (6443) y Ingress (80/443)
+# Interfaz: eth1 dedicada para tráfico VIP
+# Incluye MACs virtuales para compatibilidad HA
 # ==========================================
 
 global_defs {
@@ -34,6 +35,10 @@ vrrp_instance VI_API {
         {{ api_vip }}/32 dev eth1
     }
 
+    virtual_macaddress {
+        {{ mac1 }}
+    }
+
     track_script {
         chk_haproxy
     }
@@ -57,6 +62,10 @@ vrrp_instance VI_INGRESS {
 
     virtual_ipaddress {
         {{ second_vip }}/32 dev eth1
+    }
+
+    virtual_macaddress {
+        {{ mac2 }}
     }
 
     track_script {
