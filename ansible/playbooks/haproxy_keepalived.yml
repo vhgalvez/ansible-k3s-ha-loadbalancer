@@ -78,22 +78,22 @@
         - { code: "503", message: "Service Unavailable" }
         - { code: "504", message: "Gateway Timeout" }
 
-    - name: 📁 Crear carpeta override para HAProxy en systemd
+    - name:  Crear carpeta override para HAProxy en systemd
       file:
         path: /etc/systemd/system/haproxy.service.d
         state: directory
         mode: "0755"
 
-    - name: 🛠️ Plantilla de override systemd para HAProxy
+    - name:  Plantilla de override systemd para HAProxy
       template:
         src: "../../templates/haproxy/haproxy-override.conf.j2"
         dest: /etc/systemd/system/haproxy.service.d/override.conf
         mode: "0644"
       notify:
-        - 🔄 Reload systemd
-        - 🔁 Restart HAProxy
+        -  Reload systemd
+        - Restart HAProxy
 
-    - name: 📁 Crear carpeta override para Keepalived en systemd
+    - name: Crear carpeta override para Keepalived en systemd
       file:
         path: /etc/systemd/system/keepalived.service.d
         state: directory
@@ -105,7 +105,7 @@
         content: |
           [Unit]
           After=haproxy.service
-      notify: 🔄 Reload systemd
+      notify:  Reload systemd
 
     - name: Verificar variable keepalived_interface
       debug:
@@ -116,7 +116,7 @@
         src: "{{ keepalived_config_template }}"
         dest: "{{ keepalived_config_dir }}/keepalived.conf"
         mode: "0644"
-      notify: 🔁 Restart Keepalived
+      notify:  Restart Keepalived
 
     - name: Plantilla de configuración HAProxy
       template:
@@ -131,25 +131,25 @@
         state: absent
 
   handlers:
-    - name: 🔄 Reload systemd
+    - name:  Reload systemd
       command: systemctl daemon-reload
       become: true
 
-    - name: 🔍 Validar configuración HAProxy
+    - name:  Validar configuración HAProxy
       command: "haproxy -c -f {{ haproxy_config_dir }}/haproxy.cfg"
       register: haproxy_config_check_result
       changed_when: false
-      notify: 🔁 Restart HAProxy
+      notify:  Restart HAProxy
       ignore_errors: true
 
-    - name: 🔁 Restart HAProxy
+    - name:  Restart HAProxy
       systemd:
         name: haproxy
         state: restarted
         enabled: true
       become: true
 
-    - name: 🔁 Restart Keepalived
+    - name:  Restart Keepalived
       systemd:
         name: keepalived
         state: restarted
