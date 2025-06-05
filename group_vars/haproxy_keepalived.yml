@@ -3,10 +3,10 @@
 keepalived_interface: eth1
 
 # VIPs actualizados para HA
-api_vip: "192.168.0.33"
+api_vip: "192.168.0.32"
 mac1: "00:00:5e:00:01:10"
 
-second_vip: "192.168.0.32"
+second_vip: "192.168.0.33"
 mac2:  "00:00:5e:00:01:20"
 
 # Autenticación
