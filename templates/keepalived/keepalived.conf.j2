@@ -2,8 +2,7 @@
 # ==========================================
 # Keepalived Configuration Template
 # Dos VIPs: API (6443) y Ingress (80/443)
-# Interfaz: eth1 dedicada para tráfico VIP
-# Incluye MACs virtuales para compatibilidad HA
+# Interfaz: eth0 dedicada para tráfico VIP
 # ==========================================
 
 global_defs {
@@ -11,17 +10,14 @@ global_defs {
 }
 
 vrrp_script chk_haproxy {
-    script "/bin/bash -c 'systemctl is-active haproxy >/dev/null 2>&1'"
+    script "/usr/bin/pgrep haproxy"
     interval 2
-    timeout 5
-    fall 2
-    rise 2
-    weight -10
+    weight 2
 }
 
 vrrp_instance VI_API {
     state BACKUP
-    interface eth1
+    interface eth0
     virtual_router_id 51
     priority {{ keepalived_priority_api | default(100) }}
     advert_int 1
@@ -32,11 +28,7 @@ vrrp_instance VI_API {
     }
 
     virtual_ipaddress {
-        {{ api_vip }}/32 dev eth1
-    }
-
-    virtual_macaddress {
-        {{ mac1 }}
+        {{ api_vip }}/32
     }
 
     track_script {
@@ -44,13 +36,13 @@ vrrp_instance VI_API {
     }
 
     track_interface {
-        eth1
+        eth0
     }
 }
 
 vrrp_instance VI_INGRESS {
     state BACKUP
-    interface eth1
+    interface eth0
     virtual_router_id 52
     priority {{ keepalived_priority_ingress | default(100) }}
     advert_int 1
@@ -61,11 +53,7 @@ vrrp_instance VI_INGRESS {
     }
 
     virtual_ipaddress {
-        {{ second_vip }}/32 dev eth1
-    }
-
-    virtual_macaddress {
-        {{ mac2 }}
+        {{ second_vip }}/32
     }
 
     track_script {
@@ -73,6 +61,6 @@ vrrp_instance VI_INGRESS {
     }
 
     track_interface {
-        eth1
+        eth0
     }
 }
