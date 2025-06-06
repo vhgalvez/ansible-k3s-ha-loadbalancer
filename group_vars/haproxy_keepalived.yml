@@ -1,30 +1,35 @@
 # group_vars\haproxy_keepalived.yml
 
-# Interfaz física usada por Keepalived
+# ============================================
+# Variables comunes para HAProxy + Keepalived
+# ============================================
+
+# 🔌 Interfaz de red usada por Keepalived
 keepalived_interface: eth0
 
-# VIPs actualizados para HA
-api_vip: "192.168.0.32"
-mac1: "00:00:5e:00:01:10"
+# 🌐 Direcciones VIP (Alta Disponibilidad)
+api_vip: "192.168.0.32"       # VIP para el API Server de Kubernetes (puerto 6443)
+second_vip: "192.168.0.33"    # VIP para Ingress HTTP/HTTPS (puertos 80/443)
 
-second_vip: "192.168.0.33"
-mac2:  "00:00:5e:00:01:20"
+# 🧭 MACs virtuales por instancia VRRP (deben ser únicas y reservadas)
+mac1: "00:00:5e:00:01:10"     # Para api_vip (VI_API)
+mac2: "00:00:5e:00:01:20"     # Para second_vip (VI_INGRESS)
 
-# Autenticación
+# 🔐 Autenticación VRRP
 keepalived_auth_type: "PASS"
 keepalived_auth_pass: "12345678"
 
-# Directorios y plantillas
+# 📁 Directorios y rutas de configuración
 haproxy_config_dir: "/etc/haproxy"
 keepalived_config_dir: "/etc/keepalived"
 haproxy_config_template: "../../templates/haproxy/haproxy.cfg.j2"
 keepalived_config_template: "../../templates/keepalived/keepalived.conf.j2"
 
-# Socket HAProxy
+# 📦 HAProxy Runtime
 haproxy_socket_dir: "/run/haproxy"
 haproxy_socket_file: "/run/haproxy/admin.sock"
 
-# Panel de estadísticas HAProxy
+# 📊 Panel de estadísticas HAProxy
 haproxy_stats_enabled: true
 haproxy_stats_bind_address: "127.0.0.1"
 haproxy_stats_port: 9000

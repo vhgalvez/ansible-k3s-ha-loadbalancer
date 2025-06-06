@@ -1,4 +1,3 @@
-# templates/haproxy/haproxy.cfg.j2
 # ================================
 # Configuración Global de HAProxy
 # ================================
@@ -12,9 +11,6 @@ global
     stats socket {{ haproxy_socket_file }} mode 660 level admin expose-fd listeners
     pidfile /run/haproxy.pid
 
-# =========================
-# Configuración por defecto
-# =========================
 defaults
     log     global
     mode    tcp
@@ -34,13 +30,14 @@ defaults
     errorfile 503 /etc/haproxy/errors/503.http
     errorfile 504 /etc/haproxy/errors/504.http
 
-# ============================================
-# VIP {{ api_vip }} - API SERVER Kubernetes (6443)
-# ============================================
+# =====================
+# Kubernetes API Server
+# =====================
 frontend k8s_api
     bind {{ api_vip }}:6443 transparent
     mode tcp
     option tcplog
+    option tcp-check
     default_backend k8s_api_backend
 
 backend k8s_api_backend
@@ -52,13 +49,14 @@ backend k8s_api_backend
     server {{ host }} {{ host }}:6443 check
 {% endfor %}
 
-# ==========================================
-# VIP {{ second_vip }} - INGRESS CONTROLLER HTTP
-# ==========================================
+# ============
+# Ingress HTTP
+# ============
 frontend ingress_http
     bind {{ second_vip }}:80 transparent
     mode tcp
     option tcplog
+    option tcp-check
     default_backend ingress_http_backend
 
 backend ingress_http_backend
@@ -70,13 +68,14 @@ backend ingress_http_backend
     server {{ host }} {{ host }}:80 check
 {% endfor %}
 
-# ===========================================
-# VIP {{ second_vip }} - INGRESS CONTROLLER HTTPS
-# ===========================================
+# ============
+# Ingress HTTPS
+# ============
 frontend ingress_https
     bind {{ second_vip }}:443 transparent
     mode tcp
     option tcplog
+    option tcp-check
     default_backend ingress_https_backend
 
 backend ingress_https_backend
@@ -88,10 +87,10 @@ backend ingress_https_backend
     server {{ host }} {{ host }}:443 check
 {% endfor %}
 
-# ================================
-# Interfaz de estadísticas HAProxy
-# ================================
 {% if haproxy_stats_enabled %}
+# =========================
+# HAProxy Statistics Panel
+# =========================
 listen stats
     bind {{ haproxy_stats_bind_address }}:{{ haproxy_stats_port }}
     mode http

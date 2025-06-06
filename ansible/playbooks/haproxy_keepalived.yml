@@ -6,7 +6,7 @@
   gather_facts: true
 
   vars_files:
-  - ../../group_vars/haproxy_keepalived.yml
+    - ../../group_vars/haproxy_keepalived.yml
 
   tasks:
     - name: Detectar si es Flatcar Container Linux
@@ -28,10 +28,7 @@
 
     - name: Habilitar puertos SELinux para HAProxy
       command: semanage port -a -t http_port_t -p tcp {{ item }}
-      loop:
-        - 6443
-        - 80
-        - 443
+      loop: [6443, 80, 443]
       ignore_errors: true
       when: is_flatcar.stdout != 'true'
 
@@ -78,19 +75,19 @@
         - { code: "503", message: "Service Unavailable" }
         - { code: "504", message: "Gateway Timeout" }
 
-    - name:  Crear carpeta override para HAProxy en systemd
+    - name: Crear carpeta override para HAProxy en systemd
       file:
         path: /etc/systemd/system/haproxy.service.d
         state: directory
         mode: "0755"
 
-    - name:  Plantilla de override systemd para HAProxy
+    - name: Plantilla de override systemd para HAProxy
       template:
         src: "../../templates/haproxy/haproxy-override.conf.j2"
         dest: /etc/systemd/system/haproxy.service.d/override.conf
         mode: "0644"
       notify:
-        -  Reload systemd
+        - Reload systemd
         - Restart HAProxy
 
     - name: Crear carpeta override para Keepalived en systemd
@@ -105,7 +102,13 @@
         content: |
           [Unit]
           After=haproxy.service
-      notify:  Reload systemd
+
+          [Service]
+          NotifyAccess=all
+          Restart=always
+          RestartSec=2s
+        mode: "0644"
+      notify: Reload systemd
 
     - name: Verificar variable keepalived_interface
       debug:
@@ -116,40 +119,50 @@
         src: "{{ keepalived_config_template }}"
         dest: "{{ keepalived_config_dir }}/keepalived.conf"
         mode: "0644"
-      notify:  Restart Keepalived
+      notify: Restart Keepalived
 
     - name: Plantilla de configuración HAProxy
       template:
         src: "{{ haproxy_config_template }}"
         dest: "{{ haproxy_config_dir }}/haproxy.cfg"
         mode: "0644"
-      notify: 🔍 Validar configuración HAProxy
+      notify: Validar configuración HAProxy
 
     - name: Borrar socket antiguo si existe
       file:
         path: "{{ haproxy_socket_file }}"
         state: absent
 
+    - name: Habilitar HAProxy al arranque
+      systemd:
+        name: haproxy
+        enabled: true
+
+    - name: Habilitar Keepalived al arranque
+      systemd:
+        name: keepalived
+        enabled: true
+
   handlers:
-    - name:  Reload systemd
+    - name: Reload systemd
       command: systemctl daemon-reload
       become: true
 
-    - name:  Validar configuración HAProxy
+    - name: Validar configuración HAProxy
       command: "haproxy -c -f {{ haproxy_config_dir }}/haproxy.cfg"
       register: haproxy_config_check_result
       changed_when: false
-      notify:  Restart HAProxy
+      notify: Restart HAProxy
       ignore_errors: true
 
-    - name:  Restart HAProxy
+    - name: Restart HAProxy
       systemd:
         name: haproxy
         state: restarted
         enabled: true
       become: true
 
-    - name:  Restart Keepalived
+    - name: Restart Keepalived
       systemd:
         name: keepalived
         state: restarted

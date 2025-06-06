@@ -3,3 +3,6 @@ RuntimeDirectory=haproxy
 ExecStartPre=/usr/sbin/haproxy -f /etc/haproxy/haproxy.cfg -c -q
 ExecReload=/usr/sbin/haproxy -f /etc/haproxy/haproxy.cfg -c -q
 ExecReload=/bin/kill -USR2 $MAINPID
+LimitNOFILE=1048576
+Restart=always
+RestartSec=2s

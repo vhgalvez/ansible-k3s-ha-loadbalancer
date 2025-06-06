@@ -1,3 +1,4 @@
-# Nodo 192.168.0.30
-keepalived_priority_api: 100
-keepalived_priority_ingress: 100
+# host_vars\192.168.0.30.yml Nodo 192.168.0.30
+keepalived_priority_api: 110
+keepalived_priority_ingress: 110
+keepalived_initial_state: "MASTER"

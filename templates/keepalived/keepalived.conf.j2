@@ -6,12 +6,15 @@
 # ==========================================
 global_defs {
     router_id {{ inventory_hostname }}
+    enable_script_security
 }
 
 vrrp_script chk_haproxy {
     script "/usr/bin/pgrep haproxy"
     interval 2
     weight 2
+    fall 2
+    rise 1
 }
 
 vrrp_instance VI_API {
@@ -20,6 +23,7 @@ vrrp_instance VI_API {
     virtual_router_id 51
     priority {{ keepalived_priority_api | default(100) }}
     advert_int 1
+    preempt
 
     authentication {
         auth_type {{ keepalived_auth_type }}
@@ -33,6 +37,10 @@ vrrp_instance VI_API {
     virtual_macaddress {
         {{ mac1 }}
     }
+
+    notify_master "/etc/keepalived/scripts/vip_master.sh VI_API"
+    notify_backup "/etc/keepalived/scripts/vip_backup.sh VI_API"
+    notify_fault  "/etc/keepalived/scripts/vip_fault.sh VI_API"
 
     track_script {
         chk_haproxy
@@ -49,6 +57,7 @@ vrrp_instance VI_INGRESS {
     virtual_router_id 52
     priority {{ keepalived_priority_ingress | default(100) }}
     advert_int 1
+    preempt
 
     authentication {
         auth_type {{ keepalived_auth_type }}
@@ -62,6 +71,10 @@ vrrp_instance VI_INGRESS {
     virtual_macaddress {
         {{ mac2 }}
     }
+
+    notify_master "/etc/keepalived/scripts/vip_master.sh VI_INGRESS"
+    notify_backup "/etc/keepalived/scripts/vip_backup.sh VI_INGRESS"
+    notify_fault  "/etc/keepalived/scripts/vip_fault.sh VI_INGRESS"
 
     track_script {
         chk_haproxy
