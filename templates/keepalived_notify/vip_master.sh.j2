@@ -1,18 +1,14 @@
 #!/bin/bash
+VIP="$1"
 LOGFILE="/var/log/keepalived_vip.log"
-IFACE="{{ keepalived_interface }}"
-VIPs=({% for vip in vip_addresses %}"{{ vip }}" {% endfor %})
+IP_ADDRESSES="192.168.0.32 192.168.0.33"
 
 mkdir -p "$(dirname $LOGFILE)"
-echo "==============================" >> "$LOGFILE"
+echo "$(date '+%F %T') - $(hostname -s) se convierte en MASTER para $VIP" >> "$LOGFILE"
 
-for vip in "${VIPs[@]}"; do
-  if ! ip addr show dev $IFACE | grep -q "$vip"; then
-    ip addr add "$vip" dev $IFACE
-    echo "$(date '+%F %T') - Añadida VIP $vip a $IFACE" >> "$LOGFILE"
+for IP in $IP_ADDRESSES; do
+  if ! ip addr show | grep -q "$IP"; then
+    ip addr add "$IP"/32 dev eth0
+    echo "$(date '+%F %T') - Añadida VIP $IP a eth0" >> "$LOGFILE"
   fi
 done
-
-MSG="$(date '+%F %T') - [KEEPALIVED] $(hostname -s) asumió el rol MASTER para $1"
-echo "$MSG" >> "$LOGFILE"
-logger -t keepalived "$MSG"

@@ -1,18 +1,3 @@
 #!/bin/bash
 LOGFILE="/var/log/keepalived_vip.log"
-IFACE="{{ keepalived_interface }}"
-VIPs=({% for vip in vip_addresses %}"{{ vip }}" {% endfor %})
-
-mkdir -p "$(dirname $LOGFILE)"
-echo "==============================" >> "$LOGFILE"
-
-for vip in "${VIPs[@]}"; do
-  if ip addr show dev $IFACE | grep -q "$vip"; then
-    ip addr del "$vip" dev $IFACE
-    echo "$(date '+%F %T') - Eliminada VIP $vip de $IFACE (FAULT)" >> "$LOGFILE"
-  fi
-done
-
-MSG="$(date '+%F %T') - [KEEPALIVED] $(hostname -s) entró en FAULT para $1"
-echo "$MSG" >> "$LOGFILE"
-logger -t keepalived "$MSG"
+echo "$(date '+%F %T') - $(hostname -s) entró en estado FAULT" >> "$LOGFILE"
