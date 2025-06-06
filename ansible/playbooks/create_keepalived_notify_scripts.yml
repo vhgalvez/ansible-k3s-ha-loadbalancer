@@ -5,6 +5,11 @@
   become: true
   gather_facts: false
 
+  vars:
+    vip_addresses:
+      - "192.168.0.32/32"
+      - "192.168.0.33/32"
+
   tasks:
 
     - name: 📁 Crear carpeta para scripts de Keepalived
@@ -16,55 +21,19 @@
         mode: '0755'
 
     - name: 📜 Crear script vip_master.sh
-      ansible.builtin.copy:
+      ansible.builtin.template:
         dest: /etc/keepalived/scripts/vip_master.sh
-        content: |
-          #!/bin/bash
-          LOGFILE="/var/log/keepalived_vip.log"
-          mkdir -p "$(dirname $LOGFILE)"
-          MSG="$(date '+%F %T') - [KEEPALIVED] $(hostname -s) - IP $(hostname -I | awk '{print $1}') asumió el rol MASTER para $1"
-          echo "==============================" >> "$LOGFILE"
-          echo "$MSG" >> "$LOGFILE"
-          logger -t keepalived "$MSG"
-        owner: root
-        group: root
+        src: ../templates/keepalived_notify/vip_master.sh.j2
         mode: '0755'
 
     - name: 📜 Crear script vip_backup.sh
-      ansible.builtin.copy:
+      ansible.builtin.template:
         dest: /etc/keepalived/scripts/vip_backup.sh
-        content: |
-          #!/bin/bash
-          LOGFILE="/var/log/keepalived_vip.log"
-          mkdir -p "$(dirname $LOGFILE)"
-          MSG="$(date '+%F %T') - [KEEPALIVED] $(hostname -s) - IP $(hostname -I | awk '{print $1}') cambió a BACKUP para $1"
-          echo "==============================" >> "$LOGFILE"
-          echo "$MSG" >> "$LOGFILE"
-          logger -t keepalived "$MSG"
-        owner: root
-        group: root
+        src: ../templates/keepalived_notify/vip_backup.sh.j2
         mode: '0755'
 
     - name: 📜 Crear script vip_fault.sh
-      ansible.builtin.copy:
+      ansible.builtin.template:
         dest: /etc/keepalived/scripts/vip_fault.sh
-        content: |
-          #!/bin/bash
-          LOGFILE="/var/log/keepalived_vip.log"
-          mkdir -p "$(dirname $LOGFILE)"
-          MSG="$(date '+%F %T') - [KEEPALIVED] $(hostname -s) - IP $(hostname -I | awk '{print $1}') entró en estado FAULT para $1"
-          echo "==============================" >> "$LOGFILE"
-          echo "$MSG" >> "$LOGFILE"
-          logger -t keepalived "$MSG"
-        owner: root
-        group: root
+        src: ../templates/keepalived_notify/vip_fault.sh.j2
         mode: '0755'
-
-    - name: ✅ Verificar existencia de scripts creados
-      ansible.builtin.shell: ls -l /etc/keepalived/scripts/
-      register: script_check
-      changed_when: false
-
-    - name: 📋 Mostrar scripts generados
-      ansible.builtin.debug:
-        var: script_check.stdout_lines
