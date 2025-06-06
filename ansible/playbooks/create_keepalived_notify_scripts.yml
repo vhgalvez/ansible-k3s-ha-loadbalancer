@@ -23,17 +23,17 @@
     - name: 📜 Crear script vip_master.sh
       ansible.builtin.template:
         dest: /etc/keepalived/scripts/vip_master.sh
-        src: ../templates/keepalived_notify/vip_master.sh.j2
+        src: ../../templates/keepalived_notify/vip_master.sh.j2
         mode: '0755'
 
     - name: 📜 Crear script vip_backup.sh
       ansible.builtin.template:
         dest: /etc/keepalived/scripts/vip_backup.sh
-        src: ../templates/keepalived_notify/vip_backup.sh.j2
+        src: ../../templates/keepalived_notify/vip_backup.sh.j2
         mode: '0755'
 
     - name: 📜 Crear script vip_fault.sh
       ansible.builtin.template:
         dest: /etc/keepalived/scripts/vip_fault.sh
-        src: ../templates/keepalived_notify/vip_fault.sh.j2
+        src: ../../templates/keepalived_notify/vip_fault.sh.j2
         mode: '0755'
