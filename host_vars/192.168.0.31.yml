@@ -1,4 +1,3 @@
-# host_vars\192.168.0.31.yml Nodo 192.168.0.31
 keepalived_priority_api: 100
 keepalived_priority_ingress: 100
 keepalived_initial_state: "BACKUP"

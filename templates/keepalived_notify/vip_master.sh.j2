@@ -4,13 +4,14 @@
 VIP="$1"
 LOGFILE="/var/log/keepalived_vip.log"
 IP_ADDRESSES="192.168.0.32 192.168.0.33"
+INTERFACE="{{ keepalived_interface }}"
 
 mkdir -p "$(dirname "$LOGFILE")"
 echo "$(date '+%F %T') - $(hostname -s) se convierte en MASTER para $VIP" >> "$LOGFILE"
 
 for IP in $IP_ADDRESSES; do
-  if ! ip addr show | grep -q "$IP"; then
-    ip addr add "$IP"/32 dev {{ keepalived_interface }}
-    echo "$(date '+%F %T') - Añadida VIP $IP a {{ keepalived_interface }}" >> "$LOGFILE"
+  if ! ip addr show "$INTERFACE" | grep -q "$IP"; then
+    ip addr add "$IP"/32 dev "$INTERFACE"
+    echo "$(date '+%F %T') - Añadida VIP $IP a $INTERFACE" >> "$LOGFILE"
   fi
 done
