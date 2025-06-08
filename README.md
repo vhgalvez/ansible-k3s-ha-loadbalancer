@@ -272,12 +272,9 @@ sudo systemctl status haproxy
 ### 🧪 Estado de los Balanceadores tras el Playbook `install_haproxy_keepalived.yml`
 
 ```plaintext
-Nodo	Servicio	Estado	Observaciones
-keepalived	✅ corriendo	Estado MASTER
-loadbalancer1	haproxy	✅ corriendo	Posee ambas VIPs (por prioridad)
-keepalived	✅ corriendo	BACKUP con menor prioridad
-loadbalancer2	haproxy	✅ corriendo	Espera en BACKUP
-keepalived	✅ corriendo	BACKUP
+Nodo	IP	Función
+loadbalancer1	192.168.0.30	HAProxy master + VIP
+loadbalancer2	192.168.0.31	HAProxy backup + VIP
 ```
 
 ---
