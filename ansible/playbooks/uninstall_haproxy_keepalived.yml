@@ -36,6 +36,14 @@
       loop:
         - "{{ keepalived_config_dir }}"
         - /etc/systemd/system/keepalived.service.d
+        - /etc/keepalived/scripts
+        - /var/log/keepalived_vip.log
+
+    - name: Eliminar VIPs manualmente de la interfaz eth0
+      shell: |
+        ip addr del 192.168.0.32/32 dev eth0 || true
+        ip addr del 192.168.0.33/32 dev eth0 || true
+      ignore_errors: true
 
     - name: Eliminar binarios en sistemas RHEL-like
       package:
@@ -47,4 +55,3 @@
 
     - name: Recargar systemd tras eliminar servicios
       command: systemctl daemon-reexec
-      become: true
