@@ -2,9 +2,9 @@
 # templates/keepalived_notify/vip_master.sh.j2
 
 VIP="$1"
-LOGFILE="/var/log/keepalived_vip.log"
+LOGFILE="/tmp/keepalived_vip.log"
 IP_ADDRESSES="192.168.0.32 192.168.0.33"
-INTERFACE="{{ keepalived_interface }}"
+INTERFACE="eth0"
 
 mkdir -p "$(dirname "$LOGFILE")"
 echo "$(date '+%F %T') - $(hostname -s) se convierte en MASTER para $VIP" >> "$LOGFILE"
