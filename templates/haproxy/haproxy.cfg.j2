@@ -35,7 +35,7 @@ defaults
 # Kubernetes API Server
 # =====================
 frontend k8s_api
-    bind {{ api_vip }}:6443 transparent
+    bind {{ api_vip }}:6443
     mode tcp
     option tcplog
     option tcp-check
@@ -54,7 +54,7 @@ backend k8s_api_backend
 # Ingress HTTP
 # ============
 frontend ingress_http
-    bind {{ second_vip }}:80 transparent
+    bind {{ second_vip }}:80
     mode tcp
     option tcplog
     option tcp-check
@@ -73,7 +73,7 @@ backend ingress_http_backend
 # Ingress HTTPS
 # ============
 frontend ingress_https
-    bind {{ second_vip }}:443 transparent
+    bind {{ second_vip }}:443
     mode tcp
     option tcplog
     option tcp-check
