@@ -18,7 +18,8 @@ vrrp_script chk_haproxy {
 }
 
 vrrp_instance VI_API {
-    state {{ keepalived_initial_state }}
+    state BACKUP
+    interface {{ keepalived_interface }}
     virtual_router_id 51
     priority {{ keepalived_priority_api | default(100) }}
     advert_int 1
@@ -51,7 +52,7 @@ vrrp_instance VI_API {
 }
 
 vrrp_instance VI_INGRESS {
-    state {{ keepalived_initial_state }}
+    state BACKUP
     interface {{ keepalived_interface }}
     virtual_router_id 52
     priority {{ keepalived_priority_ingress | default(100) }}
