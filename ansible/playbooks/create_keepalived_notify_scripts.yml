@@ -1,11 +1,16 @@
-# ansible\playbooks\create_keepalived_notify_scripts.yml
+# ansible/playbooks/create_keepalived_notify_scripts.yml
 ---
 - name: Crear scripts de notificación para Keepalived (MASTER / BACKUP / FAULT)
   hosts: haproxy_keepalived
   become: true
   gather_facts: false
 
+  # NEW: Load variables from group_vars specifically for this playbook
+  vars_files:
+    - ../../group_vars/haproxy_keepalived.yml # Path relative to the playbook file
+
   vars:
+    # This variable is fine here as it's specific to the scripts
     vip_addresses:
       - "192.168.0.32/32"
       - "192.168.0.33/32"
@@ -19,6 +24,10 @@
         owner: root
         group: root
         mode: '0755'
+
+    - name: Debug - Mostrar valor de keepalived_interface (solo para verificar)
+      ansible.builtin.debug:
+        var: keepalived_interface
 
     - name: 📜 Crear script vip_master.sh
       ansible.builtin.template:
