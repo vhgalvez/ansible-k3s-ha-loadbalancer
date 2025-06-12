@@ -31,8 +31,27 @@ defaults
     errorfile 503 /etc/haproxy/errors/503.http
     errorfile 504 /etc/haproxy/errors/504.http
 
-# ============ 
-# Ingress HTTP (Puerto 80 público)
+# =====================
+# Kubernetes API Server
+# =====================
+frontend k8s_api
+    bind {{ api_vip }}:6443
+    mode tcp
+    option tcplog
+    option tcp-check
+    default_backend k8s_api_backend
+
+backend k8s_api_backend
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    default-server inter 3s fall 3 rise 2
+{% for host in groups['masters'] %}
+    server {{ host }} {{ host }}:6443 check
+{% endfor %}
+
+# ============
+# Ingress HTTP
 # ============
 frontend ingress_http
     bind {{ second_vip }}:80
@@ -47,11 +66,11 @@ backend ingress_http_backend
     option tcp-check
     default-server inter 3s fall 3 rise 2
 {% for host in groups['workers'] %}
-    server {{ host }} {{ host }}:32591 check
+    server {{ host }} {{ host }}:80 check
 {% endfor %}
 
-# ============ 
-# Ingress HTTPS (Puerto 443 público)
+# ============
+# Ingress HTTPS
 # ============
 frontend ingress_https
     bind {{ second_vip }}:443
@@ -66,7 +85,7 @@ backend ingress_https_backend
     option tcp-check
     default-server inter 3s fall 3 rise 2
 {% for host in groups['workers'] %}
-    server {{ host }} {{ host }}:31541 check
+    server {{ host }} {{ host }}:443 check
 {% endfor %}
 
 {% if haproxy_stats_enabled %}
