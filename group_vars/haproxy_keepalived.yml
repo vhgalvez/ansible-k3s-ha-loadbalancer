@@ -1,5 +1,4 @@
 # group_vars/haproxy_keepalived.yml
-
 # ============================================
 # Variables comunes para HAProxy + Keepalived
 # ============================================
@@ -8,12 +7,12 @@
 keepalived_interface: eth0
 
 # Direcciones VIP (Alta Disponibilidad)
-api_vip: "192.168.0.32"       # VIP para el API Server de Kubernetes (puerto 6443)
-second_vip: "192.168.0.33"    # VIP para Ingress HTTP/HTTPS (puertos 80/443)
+api_vip: "192.168.0.32"        # VIP para el API Server de Kubernetes (puerto 6443)
+second_vip: "192.168.0.33"     # VIP para Ingress HTTP/HTTPS (puertos 80/443 o NodePort)
 
 # MACs virtuales por instancia VRRP (deben ser únicas y reservadas)
-mac1: "00:00:5e:00:01:10"     # Para api_vip (VI_API)
-mac2: "00:00:5e:00:01:20"     # Para second_vip (VI_INGRESS)
+mac1: "00:00:5e:00:01:10"      # Para api_vip (VI_API)
+mac2: "00:00:5e:00:01:20"      # Para second_vip (VI_INGRESS)
 
 # Autenticación VRRP
 keepalived_auth_type: "PASS"
@@ -37,3 +36,9 @@ haproxy_stats_uri: "/"
 haproxy_stats_refresh: "10s"
 haproxy_stats_auth_user: "admin"
 haproxy_stats_auth_pass: "12345678"
+
+# ========================================
+# Puertos NodePort configurados en Traefik
+# ========================================
+traefik_nodeport_http: 32591   # NodePort expuesto para HTTP
+traefik_nodeport_https: 31541  # NodePort expuesto para HTTPS (traefik dashboard y demás ingress TLS)

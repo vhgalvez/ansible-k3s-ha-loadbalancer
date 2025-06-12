@@ -66,12 +66,12 @@ backend ingress_http_backend
     option tcp-check
     default-server inter 3s fall 3 rise 2
 {% for host in groups['workers'] %}
-    server {{ host }} {{ host }}:{{ traefik_nodeport_http }} check
+    server {{ host }} {{ host }}:80 check
 {% endfor %}
 
-# =============
+# ============
 # Ingress HTTPS
-# =============
+# ============
 frontend ingress_https
     bind {{ second_vip }}:443
     mode tcp
@@ -85,7 +85,7 @@ backend ingress_https_backend
     option tcp-check
     default-server inter 3s fall 3 rise 2
 {% for host in groups['workers'] %}
-    server {{ host }} {{ host }}:{{ traefik_nodeport_https }} check
+    server {{ host }} {{ host }}:443 check
 {% endfor %}
 
 {% if haproxy_stats_enabled %}
@@ -101,5 +101,4 @@ listen stats
     stats show-node
     stats auth {{ haproxy_stats_auth_user }}:{{ haproxy_stats_auth_pass }}
 {% endif %}
-
 
