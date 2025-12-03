@@ -307,7 +307,7 @@ loadbalancer2	192.168.0.31	HAProxy backup + VIP
 
 ---
 
-graph TD
+```graph TD
   A["Internet"] --> B["Cloudflare DNS + HTTPS<br/>(example.com)"]
   B --> C["VIP 192.168.0.33<br/>(IngressRoute HTTP/HTTPS)"]
   C --> D["HAProxy<br/>(ingress_http / ingress_https)"]
