@@ -87,12 +87,14 @@ storage1	10.17.4.27	NFS + Longhorn
 ```
 
 Longhorn (RWO):
+
 - Microservicios
 - Prometheus
 - Grafana
 - ELK
 
 NFS (RWX):
+
 - PostgreSQL → `/srv/nfs/postgresql`
 - Datos compartidos → `/srv/nfs/shared`
 
@@ -194,6 +196,7 @@ Load Balancers:
 ### ✅ Configuración Correcta para Romper el Ciclo
 
 1. **master1 usa su IP real para bootstrap**
+
    - El script de Ansible no apunta a la VIP (192.168.0.32) para levantar el nodo inicial.
    - Esto permite iniciar el API Server antes que HAProxy.
 
@@ -223,6 +226,7 @@ After=haproxy.service
 Esto asegura que Keepalived pueda arrancar independientemente de HAProxy.
 
 4. **VIP solo se usa después de la estabilización**
+
    - El uso de la VIP para el kubeconfig solo se hace después de validar que el balanceador HAProxy esté activo.
 
 5. **Configuración de HAProxy**
@@ -297,13 +301,12 @@ loadbalancer2	192.168.0.31	HAProxy backup + VIP
 ---
 
 graph TD
-  A["Internet"] --> B["Cloudflare DNS + HTTPS<br/>(example.com)"]
-  B --> C["VIP 192.168.0.33<br/>(IngressRoute HTTP/HTTPS)"]
-  C --> D["HAProxy<br/>(ingress_http / ingress_https)"]
-  D --> E["Nodos Worker<br/>(10.17.4.24-26)<br/>Puertos 80 / 443"]
-  E --> F["Servicio Traefik (ClusterIP)<br/>en K3s"]
-  F --> G["IngressRoute / Ingress<br/>hacia tus apps"]
-
+A["Internet"] --> B["Cloudflare DNS + HTTPS<br/>(example.com)"]
+B --> C["VIP 192.168.0.33<br/>(IngressRoute HTTP/HTTPS)"]
+C --> D["HAProxy<br/>(ingress_http / ingress_https)"]
+D --> E["Nodos Worker<br/>(10.17.4.24-26)<br/>Puertos 80 / 443"]
+E --> F["Servicio Traefik (ClusterIP)<br/>en K3s"]
+F --> G["IngressRoute / Ingress<br/>hacia tus apps"]
 
 ### 📦 Instalación de HAProxy y Keepalived
 
