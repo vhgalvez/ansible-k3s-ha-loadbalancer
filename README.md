@@ -271,6 +271,13 @@ haproxy -c -f /etc/haproxy/haproxy.cfg
 sudo systemctl status haproxy
 ```
 
+4. Verificar estado de Keepalived:
+
+```bash
+sudo systemctl status keepalived
+
+```
+
 ---
 
 ### 🧪 Estado de los Balanceadores tras el Playbook `install_haproxy_keepalived.yml`
@@ -301,12 +308,12 @@ loadbalancer2	192.168.0.31	HAProxy backup + VIP
 ---
 
 graph TD
-A["Internet"] --> B["Cloudflare DNS + HTTPS<br/>(example.com)"]
-B --> C["VIP 192.168.0.33<br/>(IngressRoute HTTP/HTTPS)"]
-C --> D["HAProxy<br/>(ingress_http / ingress_https)"]
-D --> E["Nodos Worker<br/>(10.17.4.24-26)<br/>Puertos 80 / 443"]
-E --> F["Servicio Traefik (ClusterIP)<br/>en K3s"]
-F --> G["IngressRoute / Ingress<br/>hacia tus apps"]
+  A["Internet"] --> B["Cloudflare DNS + HTTPS<br/>(example.com)"]
+  B --> C["VIP 192.168.0.33<br/>(IngressRoute HTTP/HTTPS)"]
+  C --> D["HAProxy<br/>(ingress_http / ingress_https)"]
+  D --> E["Nodos Worker<br/>(10.17.4.24-26)<br/>Puertos 80 / 443"]
+  E --> F["Servicio Traefik (ClusterIP)<br/>en K3s"]
+  F --> G["IngressRoute / Ingress<br/>hacia tus apps"]
 
 ### 📦 Instalación de HAProxy y Keepalived
 
