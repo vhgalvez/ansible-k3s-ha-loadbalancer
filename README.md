@@ -296,25 +296,13 @@ loadbalancer2	192.168.0.31	HAProxy backup + VIP
 
 ---
 
-Internet
-  │
-  ▼
-Cloudflare DNS + HTTPS (example.com)
-  │
-  ▼
-VIP 192.168.0.33 (IngressRoute HTTP/HTTPS)
-  │
-  ▼
-HAProxy ingress_http / ingress_https
-  │
-  ▼
-Nodos Worker (10.17.4.24-26) puerto 80 / 443
-  │
-  ▼
-Servicio Traefik (ClusterIP) en K3s
-  │
-  ▼
-IngressRoute / Ingress hacia tus apps
+graph TD
+  A["Internet"] --> B["Cloudflare DNS + HTTPS<br/>(example.com)"]
+  B --> C["VIP 192.168.0.33<br/>(IngressRoute HTTP/HTTPS)"]
+  C --> D["HAProxy<br/>(ingress_http / ingress_https)"]
+  D --> E["Nodos Worker<br/>(10.17.4.24-26)<br/>Puertos 80 / 443"]
+  E --> F["Servicio Traefik (ClusterIP)<br/>en K3s"]
+  F --> G["IngressRoute / Ingress<br/>hacia tus apps"]
 
 
 ### 📦 Instalación de HAProxy y Keepalived
